@@ -23,7 +23,7 @@ def timer_func(func):
 
 
 @timer_func
-def get_radar_files(rn, years=None):
+def get_radar_files(rn, years=None) -> dict:
     str_bucket = 's3://s3-radaresideam/'
     fs = fsspec.filesystem("s3", anon=True)
     if not years:
@@ -31,7 +31,7 @@ def get_radar_files(rn, years=None):
     return {year: fs.glob(f"{str_bucket}/l2_data/{year}/*/*/{rn}/*") for year in years}
 
 
-def get_df_radar(rn):
+def get_df_radar(rn) -> pd.DataFrame:
     df = pd.read_csv(f"../data/Estaciones_{rn.upper()}.csv", sep=';')
     df['rn'] = rn
     return df[['latitud', 'longitud', "CODIGO", "rn"]]
@@ -81,14 +81,14 @@ def get_test_data(rn):
 @timer_func
 def main():
     rn = ["Guaviare", "Barrancabermeja", "Carimagua", "Munchique"]
-    rn = ["Guaviare"]
+    rn = ["Barrancabermeja"]
     years = ['2018']
     for rad_n in rn:
         dt_data = get_radar_files(rad_n, years=years)
         df = get_df_radar(rad_n, )
         files = dt_data[years[0]]
         print(len(files))
-        for file in files[18066:]:
+        for file in files[:100]:
             global radar
             try:
                 radar = get_radar(file)

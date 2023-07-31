@@ -48,7 +48,7 @@ def get_time(radar):
 
 def valid_task(radar, tasks=None):
     if not tasks:
-        tasks = ['SURV_HV_300', 'SURVP']
+        tasks = ['SURV_HV_300', 'SURVP', 'SURVEILLANCE']
     _task = radar.metadata['sigmet_task_name'].decode('utf-8').replace(" ", "")
     if _task in tasks:
         return True
