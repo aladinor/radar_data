@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import numpy as np
-import pyart
-import pyproj
-import pandas as pd
 import os
 import datetime
-from config_utils import get_pars_from_ini, make_dir
+from datetime import datetime
+from config_utils import get_pars_from_ini
 from netCDF4 import num2date
 from dateutil import tz
 
@@ -15,8 +12,18 @@ dt_names = get_pars_from_ini('{}/config/radar_names.ini'.format(path_ini))
 dt_zoom = get_pars_from_ini('{}/config/extents.ini'.format(path_ini))
 
 
-def is_close(a, b, rel_tol=1e-03, abs_tol=0.0):
-    return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
+def get_test_data(rn):
+    if rn == "Carimagua":
+        return get_radar('s3-radaresideam/l2_data/2022/08/09/Carimagua/CAR220809191504.RAWDSX2') # CARIMAGUA
+    elif rn == "Guaviare":
+        return get_radar('s3-radaresideam/l2_data/2022/10/06/Guaviare/GUA221006000012.RAWHDKV')  # GUAVIARE
+
+    elif rn == "Munchique":
+        return get_radar('s3-radaresideam/l2_data/2022/04/10/Munchique/CEM220410000004.RAWE4PE')  # MUNCHIQUE
+    elif rn == "Barrancabermeja":
+        return get_radar('s3-radaresideam/l2_data/2023/04/07/Barrancabermeja/BAR230407000004.RAW0LK7')  # BARRANCA
+    else:
+        return get_radar('s3-radaresideam/l2_data/2018/09/12/Guaviare/GUA180912050051.RAWFG4F')  # test
 
 
 def get_time(radar):
@@ -27,23 +34,15 @@ def get_time(radar):
     """
     try:
         time_utc = num2date(radar.time['data'][0], radar.time['units'])
-        time_utc = datetime.datetime(*time_utc.timetuple()[:-3], tzinfo=tz.gettz('UTC'))
-        to_zone = tz.gettz('America/Bogota')
-        from_zone = tz.gettz('UTC')
-        utc_time = time_utc.replace(tzinfo=from_zone)
-        time = utc_time.astimezone(to_zone)
-        return time, time_utc
-
     except ValueError:
-        time_ok = '{} {}'.format(radar.time['units'][:13], radar.time['units'][13:])
-        radar.time['units'] = time_ok
-        time_utc = num2date(radar.time['data'][0], radar.time['units'])
-        time_utc = datetime.datetime(*time_utc.timetuple()[:-3], tzinfo=tz.gettz('UTC'))
-        to_zone = tz.gettz('America/Bogota')
-        from_zone = tz.gettz('UTC')
-        utc_time = time_utc.replace(tzinfo=from_zone)
-        time = utc_time.astimezone(to_zone)
-        return time, time_utc
+        radar.time['units'] = '{} {}'.format(radar.time['units'][:13], radar.time['units'][13:])
+
+    time_utc = datetime(*time_utc.timetuple()[:-3], tzinfo=tz.gettz('UTC'))
+    to_zone = tz.gettz('America/Bogota')
+    from_zone = tz.gettz('UTC')
+    utc_time = time_utc.replace(tzinfo=from_zone)
+    time = utc_time.astimezone(to_zone)
+    return time, time_utc
 
 
 def valid_task(radar, tasks=None):

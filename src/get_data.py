@@ -28,11 +28,11 @@ def get_radar_files(rn, years=None) -> dict:
     fs = fsspec.filesystem("s3", anon=True)
     if not years:
         years = [i.split('/')[-1] for i in fs.glob(f"{str_bucket}/l2_data/*")]
-    return {year: fs.glob(f"{str_bucket}/l2_data/{year}/*/*/{rn}/*") for year in years}
+    return {year: fs.glob(f"{str_bucket}/l2_data/{year}/10/10/{rn}/*") for year in years}
 
 
 def get_df_radar(rn) -> pd.DataFrame:
-    df = pd.read_csv(f"../data/Estaciones_{rn.upper()}.csv", sep=';')
+    df = pd.read_csv(f"/data/Estaciones_{rn.upper()}.csv", sep=';')
     df['rn'] = rn
     return df[['latitud', 'longitud', "CODIGO", "rn"]]
 
@@ -64,21 +64,7 @@ def main_procss(lat, lon, station, rn):
     write_file_sta(station=station, data=ser, rn=rn)
 
 
-def get_test_data(rn):
-    if rn == "Carimagua":
-        return get_radar('s3-radaresideam/l2_data/2022/08/09/Carimagua/CAR220809191504.RAWDSX2') # CARIMAGUA
-    elif rn == "Guaviare":
-        return get_radar('s3-radaresideam/l2_data/2022/10/06/Guaviare/GUA221006000012.RAWHDKV')  # GUAVIARE
-
-    elif rn == "Munchique":
-        return get_radar('s3-radaresideam/l2_data/2022/04/10/Munchique/CEM220410000004.RAWE4PE')  # MUNCHIQUE
-    elif rn == "Barrancabermeja":
-        return get_radar('s3-radaresideam/l2_data/2023/04/07/Barrancabermeja/BAR230407000004.RAW0LK7')  # BARRANCA
-    else:
-        return get_radar('s3-radaresideam/l2_data/2018/09/12/Guaviare/GUA180912050051.RAWFG4F')  # test
-
-
-@timer_func
+# @timer_func
 def main():
     rn = ["Guaviare", "Barrancabermeja", "Carimagua", "Munchique"]
     rn = ["Barrancabermeja"]
@@ -102,7 +88,7 @@ def main():
             except OSError:
                 print(f"Corrupted File {file}")
 
-        print(1)
+        print('Termine')
         pass
 
 
