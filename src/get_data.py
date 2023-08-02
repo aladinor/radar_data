@@ -28,7 +28,7 @@ def get_radar_files(rn, years=None) -> dict:
     fs = fsspec.filesystem("s3", anon=True)
     if not years:
         years = [i.split('/')[-1] for i in fs.glob(f"{str_bucket}/l2_data/*")]
-    return {year: fs.glob(f"{str_bucket}/l2_data/{year}/10/10/{rn}/*") for year in years}
+    return {year: fs.glob(f"{str_bucket}l2_data/{year}/10/10/{rn}/*") for year in years}
 
 
 def get_df_radar(rn) -> pd.DataFrame:
