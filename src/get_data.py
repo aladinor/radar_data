@@ -67,7 +67,7 @@ def main_procss(lat, lon, station, rn):
     write_file_sta(station=station, data=ser, rn=rn)
 
 
-# @timer_func
+@timer_func
 def main():
     rn = ["Guaviare", "Barrancabermeja", "Carimagua", "Munchique"]
     rn = ["Barrancabermeja"]
