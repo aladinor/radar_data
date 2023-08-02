@@ -32,7 +32,10 @@ def get_radar_files(rn, years=None) -> dict:
 
 
 def get_df_radar(rn) -> pd.DataFrame:
-    df = pd.read_csv(f"/data/Estaciones_{rn.upper()}.csv", sep=';')
+    try:
+        df = pd.read_csv(f"/data/Estaciones_{rn.upper()}.csv", sep=';')
+    except FileNotFoundError:
+        df = pd.read_csv(f"../data/Estaciones_{rn.upper()}.csv", sep=';')
     df['rn'] = rn
     return df[['latitud', 'longitud', "CODIGO", "rn"]]
 
