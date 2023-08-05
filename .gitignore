@@ -158,8 +158,8 @@ source/
 .idea/
 
 # scripts
-del2.py
-del_now.py
+src/del2.py
+src/del_now.py
 # PyCharm
 #  JetBrains specific template is maintained in a separate JetBrains.gitignore that can
 #  be found at https://github.com/github/gitignore/blob/main/Global/JetBrains.gitignore
