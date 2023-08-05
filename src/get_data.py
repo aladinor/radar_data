@@ -1,12 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import pandas as pd
 import csv
 import multiprocessing as mp
 from config_utils import make_dir
 from radar_utils import *
-# import warnings
-# warnings.simplefilter("error", DeprecationWarning)
+import argparse
 
 
 def write_file_sta(station, data, rn):
@@ -28,27 +26,36 @@ def write_data(lat, lon, station, rn):
     write_file_sta(station=station, data=ser, rn=rn)
 
 
+def create_parser():
+    parser = argparse.ArgumentParser(description='Descarga de datos')
+    parser.add_argument('--year', nargs='+', type=str, help='Lista de años a consultar',
+                        default=['2018'])
+    parser.add_argument('--radar', nargs='+', type=str, help='radares a consultar',
+                        default=['Barrancabermeja'])
+    return parser.parse_args()
+
+
 @timer_func
 def main():
-    rn = ["Guaviare", "Barrancabermeja", "Carimagua", "Munchique"]
-    rn = ["Barrancabermeja"]
-    years = ['2018']
-    for rad_n in rn:
-        dt_data = get_radar_files(rad_n, years=years)
+    args = create_parser()
+    arg = vars(args)
+    for rad_n in arg['radar']:
+        dt_data = get_radar_files(rad_n, years=arg['year'])
         df = get_df_radar(rad_n)
-        files = dt_data[years[0]]
-        for file in files[:100]:
-            global radar
-            radar = get_radar(file)
-            if radar:
-                args = zip(df['latitud'], df['longitud'], df['CODIGO'], df['rn'])
-                pool = mp.Pool()
-                pool.starmap(write_data, args)
-                pool.close()
-            else:
-                continue
-        print('Termine')
-        pass
+        for year in arg['year']:
+            files = dt_data[year]
+            for file in files[:100]:
+                global radar
+                radar = get_radar(file)
+                if radar:
+                    args = zip(df['latitud'], df['longitud'], df['CODIGO'], df['rn'])
+                    pool = mp.Pool()
+                    pool.starmap(write_data, args)
+                    pool.close()
+                else:
+                    continue
+            print('Termine')
+            pass
 
 
 if __name__ == "__main__":
