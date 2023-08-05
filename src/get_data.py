@@ -39,6 +39,7 @@ def create_parser():
 def main():
     args = create_parser()
     arg = vars(args)
+    print(arg)
     for rad_n in arg['radar']:
         dt_data = get_radar_files(rad_n, years=arg['year'])
         df = get_df_radar(rad_n)
