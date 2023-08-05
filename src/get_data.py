@@ -29,16 +29,6 @@ def write_data(lat, lon, station, rn):
 
 
 @timer_func
-def write_data2(radar, lat, lon, station, rn):
-    ref = get_ref(radar=radar, lat=lat, lon=lon)
-    _, t = get_time(radar)
-    data = {'date': pd.to_datetime(t, utc=True),
-            'cod': str(station), 'ref': float(ref)}
-    ser = pd.Series(data=data)
-    write_file_sta(station=station, data=ser, rn=rn)
-
-
-@timer_func
 def main():
     rn = ["Guaviare", "Barrancabermeja", "Carimagua", "Munchique"]
     rn = ["Barrancabermeja"]
