@@ -5,7 +5,8 @@ WORKDIR ./
 COPY ./src ./src
 COPY ./data ./data
 RUN mkdir /results
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir arm_pyart
+RUN python -m pip install --no-cache-dir --upgrade pip
+RUN python -m pip install --no-cache-dir numpy
+RUN python -m pip install --no-cache-dir arm_pyart
 
 CMD ["python", "src/get_data.py"]
