@@ -44,7 +44,8 @@ def main():
         df = get_df_radar(rad_n)
         for year in arg['year']:
             files = dt_data[year]
-            for file in files[:100]:
+            print(f"Total number of files to process on {year} are {len(files)}")
+            for file in files:
                 global radar
                 radar = get_radar(file)
                 if radar:
