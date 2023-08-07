@@ -1,20 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import csv
 import multiprocessing as mp
-from config_utils import make_dir
 from radar_utils import *
-import argparse
-
-
-def write_file_sta(station, data, rn):
-    path = f'../results/{rn}'
-    make_dir(path)
-    file_path = f"{path}/{station}.csv"
-    with open(file_path, 'a', newline='\n') as csv_file:
-        csv_writer = csv.writer(csv_file, delimiter=',')
-        csv_writer.writerow(data)
-        csv_file.close()
 
 
 def write_data(lat, lon, station, rn):
@@ -24,15 +11,6 @@ def write_data(lat, lon, station, rn):
             'cod': str(station), 'ref': float(ref)}
     ser = pd.Series(data=data)
     write_file_sta(station=station, data=ser, rn=rn)
-
-
-def create_parser():
-    parser = argparse.ArgumentParser(description='Descarga de datos')
-    parser.add_argument('--year', nargs='+', type=str, help='Lista de años a consultar',
-                        default=['2018'])
-    parser.add_argument('--radar', nargs='+', type=str, help='radares a consultar',
-                        default=['Barrancabermeja'])
-    return parser.parse_args()
 
 
 @timer_func
@@ -48,14 +26,18 @@ def main():
             print(f"Total number of files to process on {year} are {len(files)}")
             for file in files:
                 global radar
-                radar = get_radar(file)
-                if radar:
-                    args = zip(df['latitud'], df['longitud'], df['CODIGO'], df['rn'])
-                    pool = mp.Pool()
-                    pool.starmap(write_data, args)
-                    pool.close()
-                else:
-                    continue
+                exist = check_if_exist(rn=rad_n, file=file)
+                if not exist:
+                    radar = get_radar(file)
+                    if radar:
+                        args = zip(df['latitud'], df['longitud'], df['CODIGO'], df['rn'])
+                        pool = mp.Pool()
+                        pool.starmap_async(write_data, args)
+                        pool.close()
+                        pool.join()
+                        write_file_radar(rn=rad_n, file=file)
+                    else:
+                        continue
             print('Termine')
             pass
 

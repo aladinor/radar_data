@@ -6,9 +6,11 @@ import fsspec
 import numpy as np
 import pandas as pd
 import pyart
+import argparse
+import csv
 from time import time
 from datetime import datetime
-from config_utils import get_pars_from_ini
+from config_utils import get_pars_from_ini, make_dir
 from netCDF4 import num2date
 from dateutil import tz
 
@@ -106,3 +108,57 @@ def valid_task(radar, tasks=None) -> bool:
         return True
     else:
         return False
+
+
+def get_str_file_path(filename) -> pd.to_datetime:
+    return pd.to_datetime(filename.split("/")[-1].split(".")[0][3:], format="%y%m%d%H%M%S")
+
+
+def check_if_exist(rn, file):
+    path = f'../results'
+    _t = get_str_file_path(file)
+    file_path = f"{path}/{rn}/files"
+    file_name = f"{file_path}/{_t:%y%m%d}.txt"
+    try:
+        with open(file_name, 'r', newline='\n') as txt_file:
+            lines = txt_file.readlines()
+            txt_file.close()
+        _file = [i for i in lines if i.replace("\n", "") == file]
+        if len(_file) > 0:
+            print("File already processed")
+            return True
+        else:
+            return False
+    except FileNotFoundError:
+        return False
+
+
+def write_file_radar(rn, file):
+    path = f'../results'
+    _t = get_str_file_path(file)
+    file_path = f"{path}/{rn}/files"
+    make_dir(file_path)
+    file_name = f"{file_path}/{_t:%y%m%d}.txt"
+    with open(file_name, 'a') as txt_file:
+        txt_file.write(f"{file}\n")
+        txt_file.close()
+
+
+def write_file_sta(station, data, rn):
+    path = f'../results/{rn}/data'
+    make_dir(path)
+    file_path = f"{path}/{station}.csv"
+    with open(file_path, 'a') as csv_file:
+        csv_writer = csv.writer(csv_file, delimiter=',', lineterminator='\n')
+        csv_writer.writerow(data)
+        csv_file.close()
+
+
+def create_parser():
+    parser = argparse.ArgumentParser(description='Descarga de datos')
+    parser.add_argument('--year', nargs='+', type=str, help='Lista de años a consultar',
+                        default=['2018'])
+    parser.add_argument('--radar', nargs='+', type=str, help='radares a consultar',
+                        default=['Barrancabermeja'])
+    return parser.parse_args()
+
