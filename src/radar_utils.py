@@ -26,7 +26,7 @@ def timer_func(func):
         t1 = time()
         result = func(*args, **kwargs)
         t2 = time()
-        print(f'Function {func.__name__!r} executed in {(t2 - t1):.4f}s')
+        print(f'Function {func.__name__!r} executed in {(t2 - t1):.2f}s')
         return result
     return wrap_func
 
@@ -64,8 +64,15 @@ def get_radar(file) -> pyart.core.Radar:
         pass
 
 
-def get_ref(radar, lat, lon) -> np.array:
-    return pyart.util.get_field_location(radar, latitude=lat, longitude=lon).reflectivity.isel(height=0).values
+def get_data(radar, lat, lon) -> dict:
+    fields = ['total_power', 'reflectivity', 'velocity', 'spectrum_width', 'differential_reflectivity',
+              'specific_differential_phase', 'differential_phase', 'normalized_coherent_power',
+              'cross_correlation_ratio', 'radar_echo_classification']
+    dt = {i: np.nan for i in fields}
+    data = pyart.util.get_field_location(radar, latitude=lat, longitude=lon).isel(height=0)
+    for field in list(radar.fields.keys()):
+        dt[field] = data[field].values
+    return dt
 
 
 def get_test_data(rn) -> pyart.core.Radar:
@@ -102,7 +109,7 @@ def get_time(radar) -> (time, time):
 
 def valid_task(radar, tasks=None) -> bool:
     if not tasks:
-        tasks = ['SURV_HV_300', 'SURVP', 'SURVEILLANCE']
+        tasks = ["SURV_HV_300", "SURVEILLANCE", "SURVP", "PRECA"]
     _task = radar.metadata['sigmet_task_name'].decode('utf-8').replace(" ", "")
     if _task in tasks:
         return True
@@ -114,7 +121,7 @@ def get_str_file_path(filename) -> pd.to_datetime:
     return pd.to_datetime(filename.split("/")[-1].split(".")[0][3:], format="%y%m%d%H%M%S")
 
 
-def check_if_exist(rn, file):
+def check_if_exist(rn, file) -> bool:
     path = f'../results'
     _t = get_str_file_path(file)
     file_path = f"{path}/{rn}/files"

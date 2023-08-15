@@ -5,10 +5,11 @@ from radar_utils import *
 
 
 def write_data(lat, lon, station, rn):
-    ref = get_ref(radar=radar, lat=lat, lon=lon)
+    ref = get_data(radar=radar, lat=lat, lon=lon)
     _, t = get_time(radar)
     data = {'date': pd.to_datetime(t, utc=True),
-            'cod': str(station), 'ref': float(ref)}
+            'cod': str(station)}
+    data = data | ref
     ser = pd.Series(data=data)
     write_file_sta(station=station, data=ser, rn=rn)
 
