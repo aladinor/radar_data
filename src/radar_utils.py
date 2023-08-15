@@ -109,7 +109,7 @@ def get_time(radar) -> (time, time):
 
 def valid_task(radar, tasks=None) -> bool:
     if not tasks:
-        tasks = ["SURV_HV_300", "SURVEILLANCE", "SURVP", "PRECA"]
+        tasks = ["SURV_HV_300", "SURVEILLANCE", "VOL_A", "SURVP", "PRECA"]
     _task = radar.metadata['sigmet_task_name'].decode('utf-8').replace(" ", "")
     if _task in tasks:
         return True
