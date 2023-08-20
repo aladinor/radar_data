@@ -65,8 +65,6 @@ def mp_files(arg):
                 pool.join()
 
 
-
-
 @timer_func
 def main():
     args = create_parser()

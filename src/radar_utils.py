@@ -40,11 +40,11 @@ def glob_files(path):
 def get_radar_files(rn, years=None, months=None, days=None) -> dict:
     print(years, months, days)
     str_bucket = 's3://s3-radaresideam/'
-    if months is None:
+    if months[0] is None:
         months = [i for i in range(1, 13)]
-    if years is None:
+    if years[0] is None:
         years = [2018]
-    if days is None:
+    if days[0] is None:
         days = [i for i in range(1, 32)]
     _time = [[[f"{str_bucket}l2_data/{year}/{i:02d}/{d:02d}/{rn}/*" for d in days]for i in months] for year in years]
     buckets = [item for sublist in _time for item in sublist]
