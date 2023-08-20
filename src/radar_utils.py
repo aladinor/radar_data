@@ -8,6 +8,7 @@ import pandas as pd
 import pyart
 import argparse
 import csv
+import multiprocessing as mp
 from time import time
 from datetime import datetime
 from config_utils import get_pars_from_ini, make_dir
@@ -31,12 +32,28 @@ def timer_func(func):
     return wrap_func
 
 
-def get_radar_files(rn, years=None) -> dict:
-    str_bucket = 's3://s3-radaresideam/'
+def glob_files(path):
     fs = fsspec.filesystem("s3", anon=True)
-    if not years:
-        years = [i.split('/')[-1] for i in fs.glob(f"{str_bucket}/l2_data/*")]
-    return {year: fs.glob(f"{str_bucket}l2_data/{year}/*/*/{rn}/*") for year in years}
+    return fs.glob(path)
+
+
+def get_radar_files(rn, years=None, months=None, days=None) -> dict:
+    print(years, months, days)
+    str_bucket = 's3://s3-radaresideam/'
+    if months is None:
+        months = [i for i in range(1, 13)]
+    if years is None:
+        years = [2018]
+    if days is None:
+        days = [i for i in range(1, 32)]
+    _time = [[[f"{str_bucket}l2_data/{year}/{i:02d}/{d:02d}/{rn}/*" for d in days]for i in months] for year in years]
+    buckets = [item for sublist in _time for item in sublist]
+    buckets = [item for sublist in buckets for item in sublist]
+    pool = mp.Pool()
+    files = pool.starmap(glob_files, zip(buckets))
+    pool.close()
+    pool.join()
+    return [item for sublist in files for item in sublist]
 
 
 def get_df_radar(rn) -> pd.DataFrame:
@@ -164,8 +181,12 @@ def write_file_sta(station, data, rn):
 def create_parser():
     parser = argparse.ArgumentParser(description='Descarga de datos')
     parser.add_argument('--year', nargs='+', type=str, help='Lista de años a consultar',
-                        default=['2018'])
-    parser.add_argument('--radar', nargs='+', type=str, help='radares a consultar',
+                        default=[None])
+    parser.add_argument('--months', nargs='+', type=int, help='Lista de meses a consultar',
+                        default=[None])
+    parser.add_argument('--days', nargs='+', type=int, help='Lista de dias a consultar',
+                        default=[None])
+    parser.add_argument('--radar', nargs='+', type=int, help='radares a consultar',
                         default=['Barrancabermeja'])
     return parser.parse_args()
 
