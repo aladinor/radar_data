@@ -186,7 +186,7 @@ def create_parser():
                         default=[None])
     parser.add_argument('--days', nargs='+', type=int, help='Lista de dias a consultar',
                         default=[None])
-    parser.add_argument('--radar', nargs='+', type=int, help='radares a consultar',
+    parser.add_argument('--radar', nargs='+', type=str, help='radares a consultar',
                         default=['Barrancabermeja'])
     return parser.parse_args()
 
