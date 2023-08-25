@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import multiprocessing as mp
-import fast_map
+import multiprocessing as mpc
 from radar_utils import *
 
 
@@ -15,54 +14,31 @@ def write_data(radar, lat, lon, station, rn):
     write_file_sta(station=station, data=ser, rn=rn)
 
 
-def mp_stations(arg):
-    for rad_n in arg['radar']:
-        files = get_radar_files(rad_n, years=arg['year'], months=arg['months'], days=arg['days'])
-        if files:
-            df = get_df_radar(rad_n)
-            print(f"Total number of files to process on are {len(files)}")
-            for file in files:
-                exist = check_if_exist(rn=rad_n, file=file)
-                if not exist:
-                    radar = get_radar(file)
-                    if radar:
-                        args = [(radar, row['latitud'], row['longitud'], row['CODIGO'], row['rn'])
-                                for _, row in df.iterrows()]
-                        pool = mp.Pool()
-                        pool.starmap(write_data, args)
-                        pool.close()
-                        pool.join()
-                        write_file_radar(rn=rad_n, file=file)
-                    else:
-                        continue
-            print('Termine')
-            pass
-
-
-def w_data(rad_n, file):
+def w_data(_obj):
+    rad_n = _obj.radar_name
+    file = _obj.s3_file
     exist = check_if_exist(rn=rad_n, file=file)
     radar = get_radar(file)
+    df = get_df_radar(rad_n)
     if not exist and radar:
-        df = get_df_radar(rad_n)
         for _, row in df.iterrows():
             write_data(radar=radar, lat=row.latitud, lon=row.longitud, station=row.CODIGO, rn=row.rn)
-            write_file_radar(rn=rad_n, file=file)
+        write_file_radar(rn=rad_n, file=file)
+
+
+class Radar_Args:
+    def __init__(self, rn, s3_file):
+        self.radar_name = rn
+        self.s3_file = s3_file
 
 
 def mp_files(arg):
-    for rad_n in arg['radar']:
-        dt_data = get_radar_files(rad_n, years=arg['year'])
-        for year in arg['year']:
-            files = dt_data[year]
-            _args = zip([rad_n] * 1, files[:1])
-            _ = get_test_data('Carimagua')
-            t = fast_map.fast_map_async(w_data, [rad_n] * 1, files[:1])
-            t.join()
-
-            with mp.Pool() as pool:
-                pool.starmap(w_data, _args)
-                pool.close()
-                pool.join()
+    rad_n = "Barrancabermeja"
+    files = get_radar_files(rad_n, years=arg['year'], months=arg['months'], days=arg['days'])[:10]
+    args = [Radar_Args(rn=rad_n, s3_file=_f) for _f in files]
+    pool = mpc.Pool()
+    pool.map(w_data, args)
+    pool.close()
 
 
 @timer_func
@@ -70,7 +46,7 @@ def main():
     args = create_parser()
     arg = vars(args)
     print(arg)
-    mp_stations(arg)
+    mp_files(arg)
 
 
 if __name__ == "__main__":
