@@ -45,7 +45,7 @@ def get_radar_files(rn, years=None, months=None, days=None) -> dict:
         years = [2018]
     if days[0] is None:
         days = [i for i in range(1, 32)]
-    _time = [[[f"{str_bucket}l2_data/{year}/{i:02d}/{d:02d}/{rn[0]}/*" for d in days]for i in months] for year in years]
+    _time = [[[f"{str_bucket}l2_data/{year}/{i:02d}/{d:02d}/{rn}/*" for d in days]for i in months] for year in years]
     buckets = [item for sublist in _time for item in sublist]
     buckets = [item for sublist in buckets for item in sublist]
     pool = mp.Pool()

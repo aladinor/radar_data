@@ -33,9 +33,10 @@ class Radar_Args:
 
 
 def mp_files(arg):
-    files = get_radar_files(rn=arg['radar'], years=arg['year'], months=arg['months'], days=arg['days'])
+    rn = arg['radar'][0]
+    files = get_radar_files(rn=rn, years=arg['year'], months=arg['months'], days=arg['days'])
     print(f"Number of files to process {len(files)}")
-    args = [Radar_Args(rn=arg['radar'], s3_file=_f) for _f in files]
+    args = [Radar_Args(rn=rn, s3_file=_f) for _f in files]
     pool = mpc.Pool()
     pool.map(w_data, args)
     pool.close()
